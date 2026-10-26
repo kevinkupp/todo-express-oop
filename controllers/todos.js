@@ -48,18 +48,22 @@ class todoController {
         const todoIndex = this.TODOS.findIndex((todo) => todo.id ===todoId)
 
         if(todoIndex <0 ) {
-            res.json({
-                message: 'Could not find todo with such index'
+            return res.status(404).json({
+                message: `Could not find todo with ID ${todoId}`
             })
-            throw new Error('Could not find todo')
         }
 
-        this.TODOS[todoIndex] = new Todo(this.TODOS[todoIndex].id, updatedTask)
+        const updatedTodos = [...this.TODOS]
+        updatedTodos[todoIndex] = new Todo(this.TODOS[todoIndex].id, updatedTask)
+        await fileManager.writeFile('./data/todos.json', updatedTodos)
+        this.TODOS = updatedTodos
+
         res.json({
             message: 'todo is updated',
-            updatedTask: this.TODOS[todoIndex]
+            updatedTask: updatedTodos[todoIndex]
         })
     }
+
     async deleteTodo(req, res) {
         await this.todosReady
         const todoId = req.params.id
@@ -67,13 +71,16 @@ class todoController {
         const todoIndex = this.TODOS.findIndex((todo) => todo.id ===todoId)
 
         if(todoIndex <0 ) {
-            res.json({
-                message: 'Could not find todo with such index'
+            return res.status(404).json({
+                message: `Could not find todo with ID ${todoId}`
             })
-            throw new Error('Could not find todo')
         }
 
-         const [deletedTask] = this.TODOS.splice(todoIndex, 1)
+        const deletedTask = this.TODOS[todoIndex]
+        const updatedTodos = this.TODOS.filter((todo) => todo.id !== todoId)
+        await fileManager.writeFile('./data/todos.json', updatedTodos)
+        this.TODOS = updatedTodos
+
         res.json({
             message: 'todo is deleted',
             deletedTask
